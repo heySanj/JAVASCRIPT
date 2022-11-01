@@ -1,0 +1,10 @@
+li {
+    padding-top: 10px;
+}
+
+#card{
+    background-color: rgb(255, 242, 227);
+    border-radius: 1em;
+    padding: 1em;
+    box-shadow: 2px 2px 1px #e2e2e2;
+}
