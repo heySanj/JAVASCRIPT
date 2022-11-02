@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Show Search</title>
+</head>
+
+<body>
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-half is-offset-one-quarter" id="card">
+
+                    <h1 class="title has-text-weight-bold">Search for your next Binge Worthy Show!</h1>
+
+                    <form id="searchForm">
+                        <div class="field has-addons">
+                            <div class="control is-expanded">
+                                <input type="text" name="query" placeholder="TV Show Title" class="input">
+                            </div>
+                            <div class="control">
+                                <button class="button is-primary">Search</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="imgContainer" class="">
+                        <!-- All other tile elements -->
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
