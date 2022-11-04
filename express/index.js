@@ -1,27 +1,39 @@
 const express = require("express")
 const app = express()
 
-// app.use((req, res) => {
-//     console.log("We got a new request!")
-// })
+const path = require("path")
+const redditData = require("./data.json")
+
+app.use(express.static(path.join(__dirname, '/public'))) // Serve static files such as JS scripts and CSS styles
+
+app.set('view engine', 'ejs') // Set the templating engine to EJS
+app.set('views', path.join(__dirname, '/views')) // Look for template files in the views folder
 
 // Retreive the home page
 app.get('/', (req, res) => {
-    res.send('<h1>Welcome to the home page!</h1>')
+    res.render('home') // will render the 'home.ejs' file in the 'views' folder
+})
+
+app.get('/random', (req, res) => {    
+    const randomNum = Math.floor(Math.random() * 100) + 1
+    res.render('random', { randomNum })
 })
 
 app.get('/cats', (req, res) => {
-    res.send('<h1>Meow!</h1>')
-})
-
-app.get('/dogs', (req, res) => {
-    res.send('<h1>Woof!</h1>')
+    const cats = [
+        "Blue", "Rocket", "Monty", "Steph", "Winston"
+    ]
+    res.render('cats', { cats })
 })
 
 // Getting parameters out of the request
 app.get('/r/:subreddit', (req, res) => {
     const { subreddit } = req.params // subreddit = req.params.subreddit
-    res.send(`<h1>This is the ${ subreddit } subreddit!</h1>`)
+    const data = redditData[subreddit]
+    if (data){
+        res.render('subreddit', { ...data })
+    }
+    res.send(`<h1>Sorry, we could not find the ${subreddit} subreddit!</h1>`)
 })
 
 app.get('/r/:subreddit/:postId', (req, res) => {
