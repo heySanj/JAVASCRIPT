@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
+  <%- include("partials/head")  %>
   <body>
-    <h1>Home Page</h1>
-    <h2><%= 4 + 5 + 1 %> </h2>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos deleniti
-        reprehenderit rerum, iste expedita velit minima provident, deserunt qui
-        veniam ab libero ipsum dicta. Vitae numquam magnam harum obcaecati fugit.
-    </p>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos deleniti
-        reprehenderit rerum, iste expedita velit minima provident, deserunt qui
-        veniam ab libero ipsum dicta. Vitae numquam magnam harum obcaecati fugit.
-    </p>
+    <%- include("partials/nav")  %>
+    <div class="container">
+      <h1>Home Page</h1>
+      <h2><%= 4 + 5 + 1 %> </h2>
+      <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos deleniti
+          reprehenderit rerum, iste expedita velit minima provident, deserunt qui
+          veniam ab libero ipsum dicta. Vitae numquam magnam harum obcaecati fugit.
+      </p>
+      <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos deleniti
+          reprehenderit rerum, iste expedita velit minima provident, deserunt qui
+          veniam ab libero ipsum dicta. Vitae numquam magnam harum obcaecati fugit.
+      </p>
+    </div>
+
   </body>
+  <%- include("partials/footer")  %>
 </html>

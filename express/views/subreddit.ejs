@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= name %></title>
-    <link rel="stylesheet" href="/app.css">
-  </head>
+  <%- include("partials/head")  %>
   <body>
-    <h1>Welcome to the <em><%= name %></em> subreddit!</h1>
-    <h2><%= description %></h2>
-    <h4><%= subscribers %> total subscribers</h4>
-    <hr>
-    <% for( let post of posts ) { %>
-      <article>
-        <h3><%= post.title %></h3>
-        <h5>By: <%= post.author %></h5>
-        <% if (post.img) { %>
-          <img src=<%= post.img %> alt="">
-        <% } %>
-      </article>
-    <% } %>
+    <%- include("partials/nav")  %>
+
+    <div class="container">
+      <h1>Welcome to the <em><%= name %></em> subreddit!</h1>
+      <h2><em><%= description %></em></h2>
+      <h4><%= subscribers %> total subscribers</h4>
+      <hr>
+      <% for( let post of posts ) { %>
+        <article>
+          <h3><%= post.title %></h3>
+          <h5>By: <%= post.author %></h5>
+          <% if (post.img) { %>
+            <img src=<%= post.img %> alt="">
+          <% } %>
+        </article>
+      <% } %>
+    </div>
   </body>
+  <%- include("partials/footer")  %>
 </html>

@@ -32,8 +32,10 @@ app.get('/r/:subreddit', (req, res) => {
     const data = redditData[subreddit]
     if (data){
         res.render('subreddit', { ...data })
+    } else {
+        res.send(`<h1>Sorry, we could not find the ${subreddit} subreddit!</h1>`)
     }
-    res.send(`<h1>Sorry, we could not find the ${subreddit} subreddit!</h1>`)
+
 })
 
 app.get('/r/:subreddit/:postId', (req, res) => {
