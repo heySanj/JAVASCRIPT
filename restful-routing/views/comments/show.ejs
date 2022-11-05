@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include("../partials/head")  %>
+  <body class="d-flex flex-column min-vh-100">
+    <%- include("../partials/nav")  %>
+
+    <div class="container">
+        <h1>Details for comment ID: <%= comment.id %> </h1>
+        <p><b>Author: </b><%= comment.username %></p>
+        <p><b>Comment: </b><%= comment.comment %></p>
+
+        <hr>
+
+        <h2>Edit this comment</h2>
+        <form action="/comments/<%= comment.id %>?_method=PATCH" method="POST">
+            <div class="form-group">
+              <textarea class="form-control" name="newComment" id="newComment" rows="3"><%= comment.comment %></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <hr>
+
+        <h4>Or delete...</h4>
+        <form method="post" action="/comments/<%= comment.id %>?_method=DELETE">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+
+    </div>
+
+
+    <%- include("../partials/footer")  %>
+  </body>
+
+
+</html>
