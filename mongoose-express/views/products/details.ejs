@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include("../partials/head")  %>
+  <body class="d-flex flex-column min-vh-100">
+    <%- include("../partials/nav")  %>
+    <div class="container">
+        <h1><%= product.name %></h1>
+        <ul class="list-group">
+            <li class="list-group-item">Price: $<%= product.price %></li>
+            <li class="list-group-item">Category: <%= product.category %></li>
+        </ul>
+    </div>
+    <%- include("../partials/footer")  %>
+  </body>
+  
+</html>
