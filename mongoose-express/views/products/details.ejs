@@ -9,6 +9,12 @@
             <li class="list-group-item">Price: $<%= product.price %></li>
             <li class="list-group-item">Category: <%= product.category %></li>
         </ul>
+        
+
+        <form action="/products/<%= product._id %>?_method=DELETE" method="POST" class="form-inline">
+          <a class="btn btn-primary" href="/products/<%= product._id %>/edit" role="button">Edit</a>
+          <button type="submit" class="btn btn-outline-danger cancelBtn"><b>x</b></button>
+        </form>
     </div>
     <%- include("../partials/footer")  %>
   </body>
