@@ -2,6 +2,41 @@ const path = require('path');
 const methodOverride = require('method-override')
 const express = require('express');
 const app = express();
+const morgan = require('morgan')
+
+// ====================== MIDDLEWARE =============================
+
+// // app.use runs on every request
+// app.use((req, res, next) => {
+//     console.log("THIS IS MY FIRST MIDDLEWARE!")
+//     next() // Call the next middleware function
+//     console.log("THIS IS MY FIRST MIDDLEWARE AFTER CALLING NEXT!")
+// })
+// app.use((req, res, next) => {
+//     console.log("THIS IS MY SECOND MIDDLEWARE!")
+//     return next() // return next to ensure nothing happens after it is called
+// })
+
+app.use(( req, res, next) => {
+    req.requestTime = Date.now()
+    console.log(req.method, req.path, )
+    return next()
+})
+
+// Middleware that only executes when trying to reach /dogs
+app.use('/dogs', ( req, res, next) => {
+    console.log("I Love Dogs!")
+    return next()
+})
+
+// Basic authentication on the /secret route
+const verifyPassword = ( req, res, next) => {
+    const { password } = req.query
+    if(password === '1234'){
+        return next()
+    }
+    res.send("Sorry you need a password!")
+}
 
 //To parse form data in POST request body:
 app.use(express.urlencoded({ extended: true }))
@@ -16,10 +51,14 @@ app.set('view engine', 'ejs')
  // Serve static files such as JS scripts and CSS styles
 app.use(express.static(path.join(__dirname, '/public')))
 
+// Print out request information to the console
+app.use(morgan('tiny'))
+
 // ====================== MONGOOSE SETUP =============================
 
 const mongoose = require('mongoose');
-const Product = require('./models/product')
+const Product = require('./models/product');
+const { nextTick } = require('process');
 
 mongoose.connect('mongodb://127.0.0.1:27017/farmStand')
     .then(() => {
@@ -36,6 +75,7 @@ const categories = ['fruit', 'vegetable', 'dairy']
 // ======================= ROUTE SETUP ============================
 
 app.get('/', (req, res) => {
+    console.log(`REQUEST DATE: ${req.requestTime}`)
     res.redirect('/products')
 })
 
@@ -102,6 +142,15 @@ app.delete('/products/:id', async (req, res) => {
     res.redirect(`/products`)
 })
 
+// Secret page
+app.get('/secret', verifyPassword, (req, res) => {
+    res.send("<h1>You found the secret!</h1>")
+})
+
+// If no page was found
+app.use((req, res) => {
+    res.status(404).send("404: NOT FOUND")
+})
 
 // ===================================================================
 
