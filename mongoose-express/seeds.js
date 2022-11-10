@@ -2,8 +2,10 @@
 
 const mongoose = require('mongoose');
 const Product = require('./models/product')
+require('dotenv').config();
+const dbName = 'farmStand'
 
-mongoose.connect('mongodb://127.0.0.1:27017/farmStand')
+mongoose.connect(`${process.env.DB_URI}/${dbName}?retryWrites=true&w=majority`)
     .then(() => {
         console.log("=========== MongoDB Connection Open! ==========")
     })

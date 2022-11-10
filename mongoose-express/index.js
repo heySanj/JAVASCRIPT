@@ -3,7 +3,7 @@ const methodOverride = require('method-override')
 const express = require('express');
 const app = express();
 const morgan = require('morgan')
-
+const AppError = require('./AppError')
 // ====================== MIDDLEWARE =============================
 
 // // app.use runs on every request
@@ -35,6 +35,7 @@ const verifyPassword = ( req, res, next) => {
     if(password === '1234'){
         return next()
     }
+    res.status(401) // Send a 401 status code: not authorized
     res.send("Sorry you need a password!")
 }
 
@@ -52,15 +53,17 @@ app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, '/public')))
 
 // Print out request information to the console
-app.use(morgan('tiny'))
+// app.use(morgan('tiny'))
 
 // ====================== MONGOOSE SETUP =============================
 
 const mongoose = require('mongoose');
 const Product = require('./models/product');
-const { nextTick } = require('process');
+// const { nextTick } = require('process');
+require('dotenv').config();
+const dbName = 'farmStand'
 
-mongoose.connect('mongodb://127.0.0.1:27017/farmStand')
+mongoose.connect(`${process.env.DB_URI}/${dbName}?retryWrites=true&w=majority`)
     .then(() => {
         console.log("=========== MongoDB Connection Open! ==========")
     })
@@ -79,8 +82,12 @@ app.get('/', (req, res) => {
     res.redirect('/products')
 })
 
+app.get('/admin', (req, res) => {
+    throw new AppError(403, "You are not an Admin!")
+})
+
 // Return all products from the database
-app.get('/products', async (req, res) => {
+app.get('/products', asyncErrorWrapper(async (req, res) => {
 
     const filter = req.query.category
 
@@ -92,7 +99,7 @@ app.get('/products', async (req, res) => {
     } else {    
         res.render('products/index', { products, categories, filter: 'all' })
     }
-})
+}))
 
 // Add a product to the database
 app.get('/products/new', (req, res) => {
@@ -100,47 +107,70 @@ app.get('/products/new', (req, res) => {
 })
 
 // Posting a new prduct
-app.post('/products', async (req, res) => {
+app.post('/products', async (req, res, next) => {
+    // Use try and catch to handle mongoose errors
+    try {
 
-    // Passing data directly into a new product is not safe
-    // as we aren't doing any checks on the input
-    const newProduct = new Product(req.body)
-    await newProduct.save()
+        // Passing data directly into a new product is not safe
+        // as we aren't doing any checks on the input
+        const newProduct = new Product(req.body)
+        await newProduct.save()
+        res.redirect(`/products/${newProduct._id}`)
 
-    res.redirect(`/products/${newProduct._id}`)
+    } catch (error) {
+        return next(error)
+    }
+
+
 })
 
 // Get product by ID and show details
-app.get('/products/:id', async (req, res) => {
-    const { id } = req.params
-    const product = await Product.findById(id)
-    res.render('products/details', { product })
-})
+app.get('/products/:id', asyncErrorWrapper(async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const product = await Product.findById(id)
+        
+        if(!product){
+            // App errors must be called by 'next' in an async function (not 'thrown' as normal)
+            return next(new AppError(404,"Product not found!"))
+        }
+        // Return the next function above to ensure the below function does not run afterwards!
+        res.render('products/details', { product })
+
+    } catch (error) {
+        return next(error)
+    }    
+}))
 
 // Edit a product
-app.get('/products/:id/edit', async (req, res) => {
+app.get('/products/:id/edit', asyncErrorWrapper(async (req, res, next) => {
     const { id } = req.params
     const product = await Product.findById(id)
+
+    if(!product){
+        // App errors must be called by 'next' in an async function (not 'thrown' as normal)
+        return next(new AppError(404,"Product not found!"))
+    }
     res.render('products/edit', { product, categories })
-})
+}))
 
 // Updating a prduct
-app.put('/products/:id', async (req, res) => {
+app.put('/products/:id', asyncErrorWrapper(async (req, res) => {
 
     const { id } = req.params
     const product = await Product.findByIdAndUpdate(id, req.body, {runValidators: true, new: true})
 
     res.redirect(`/products/${product._id}`)
-})
+}))
 
 // Deleting a prduct
-app.delete('/products/:id', async (req, res) => {
+app.delete('/products/:id', asyncErrorWrapper(async (req, res) => {
 
     const { id } = req.params
     const deletedProduct = await Product.findByIdAndDelete(id)
 
     res.redirect(`/products`)
-})
+}))
 
 // Secret page
 app.get('/secret', verifyPassword, (req, res) => {
@@ -150,6 +180,47 @@ app.get('/secret', verifyPassword, (req, res) => {
 // If no page was found
 app.use((req, res) => {
     res.status(404).send("404: NOT FOUND")
+})
+
+// ======================= PLAYING WITH ERRORS ============================
+
+// Wrapper function that runs the input function, catching any errors and passing it onto 'next'
+function asyncErrorWrapper(fn){
+    return function(req, res, next){
+        fn(req, res, next).catch(error => next(error))
+    }
+}
+
+
+// This route will generate an error
+app.get('/error', (req, res) => {
+    chicken.fly()
+})
+
+// Handle validation errors
+const handleValidationErr = err => {
+    console.dir(err)
+    return new AppError(400, `Validation Failed - ${err.message}`)
+}
+
+app.use((err, req, res, next) => {
+    console.log(err.name) // You can single out different types of errors using .name
+    if(err.name === 'ValidationError') err = handleValidationErr(err)
+    next(err)
+    
+})
+
+
+
+app.use((err, req, res, next) => {
+    // console.log("************************************************************")
+    // console.log("**********************  ERROR!  ****************************")
+    // console.log("************************************************************")
+    // next(err) // Calling next with an error input will launch the default express error handler
+    
+    // Pull the error code from the error, defaulting to 500 if none were found
+    const { status = 500, message = "Something went wrong!" } = err;
+    res.status(status).send(`${status}: ${message}`)
 })
 
 // ===================================================================
