@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include("../partials/head")  %>
+  <body class="d-flex flex-column min-vh-100">
+    <%- include("../partials/nav")  %>
+    <div class="container">
+        <h1>All Farms</h1>
+
+        <ul class="list-group">
+          <% for( let farm of farms ) { %>
+            <a href="/farms/<%= farm._id %>" class="list-group-item list-group-item-action"><%= farm.name %></a>
+          <% } %>
+
+        </ul>
+        <a class="btn btn-outline-dark" href="/farms/new" role="button"><b>+</b></a>
+    </div>
+    <%- include("../partials/footer")  %>
+  </body>
+  
+</html>

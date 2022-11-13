@@ -59,6 +59,7 @@ app.use(express.static(path.join(__dirname, '/public')))
 
 const mongoose = require('mongoose');
 const Product = require('./models/product');
+const Farm = require('./models/farm');
 // const { nextTick } = require('process');
 require('dotenv').config();
 const dbName = 'farmStand'
@@ -75,7 +76,7 @@ mongoose.connect(`${process.env.DB_URI}/${dbName}?retryWrites=true&w=majority`)
 
 const categories = ['fruit', 'vegetable', 'dairy']
 
-// ======================= ROUTE SETUP ============================
+// ======================= PRODUCT ROUTES ============================
 
 app.get('/', (req, res) => {
     console.log(`REQUEST DATE: ${req.requestTime}`)
@@ -129,7 +130,7 @@ app.get('/products/:id', asyncErrorWrapper(async (req, res, next) => {
     try {
         const { id } = req.params
         const product = await Product.findById(id)
-        
+        console.log(product);
         if(!product){
             // App errors must be called by 'next' in an async function (not 'thrown' as normal)
             return next(new AppError(404,"Product not found!"))
@@ -176,6 +177,80 @@ app.delete('/products/:id', asyncErrorWrapper(async (req, res) => {
 app.get('/secret', verifyPassword, (req, res) => {
     res.send("<h1>You found the secret!</h1>")
 })
+
+// ======================= FARM ROUTES ============================
+
+// Return all products from the database
+app.get('/farms', asyncErrorWrapper(async (req, res) => {
+    const farms = await Farm.find({})    
+    res.render('farms/index', { farms })
+}))
+
+// Add a farm to the database
+app.get('/farms/new', (req, res) => {
+    res.render('farms/new')
+})
+
+// Get farm by ID and show details
+app.get('/farms/:id', asyncErrorWrapper(async (req, res, next) => {
+    const { id } = req.params
+    const farm = await Farm.findById(id)
+    console.log(farm);
+    if(!farm){
+        // App errors must be called by 'next' in an async function (not 'thrown' as normal)
+        return next(new AppError(404,"Farm not found!"))
+    }
+    // Return the next function above to ensure the below function does not run afterwards!
+    res.render('farms/details', { farm })
+}))
+
+
+
+// Posting a new prduct
+app.post('/farms', asyncErrorWrapper(async (req, res, next) => {
+
+    // Passing data directly into a new product is not safe
+    // as we aren't doing any checks on the input
+    const newFarm = new Farm(req.body)
+    await newFarm.save()
+    res.redirect(`/farms/${newFarm._id}`)
+
+
+}))
+
+// Edit a farm
+app.get('/farms/:id/edit', asyncErrorWrapper(async (req, res, next) => {
+    const { id } = req.params
+    const farm = await Farm.findById(id)
+
+    if(!farm){
+        // App errors must be called by 'next' in an async function (not 'thrown' as normal)
+        return next(new AppError(404,"Farm not found!"))
+    }
+    res.render('farms/edit', { farm })
+}))
+
+// Updating a farm
+app.put('/farms/:id', asyncErrorWrapper(async (req, res) => {
+
+    const { id } = req.params
+    const farm = await Farm.findByIdAndUpdate(id, req.body, {runValidators: true, new: true})
+
+    res.redirect(`/farms/${farm._id}`)
+}))
+
+// Deleting a farm
+app.delete('/farms/:id', asyncErrorWrapper(async (req, res) => {
+
+    const { id } = req.params
+    const deletedFarm = await Farm.findByIdAndDelete(id)
+
+    res.redirect(`/farms`)
+}))
+
+
+
+// ===================================================================
 
 // If no page was found
 app.use((req, res) => {
