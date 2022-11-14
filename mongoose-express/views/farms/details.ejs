@@ -15,6 +15,15 @@
           <a class="btn btn-primary" href="/farms/<%= farm._id %>/edit" role="button">Edit</a>
           <button type="submit" class="btn btn-outline-danger cancelBtn"><b>x</b></button>
         </form>
+
+        <hr>
+        <h3>Products at this Farm</h3>
+        <ul class="list-group">
+          <% for( let product of farm.products ) { %>
+              <a href="/products/<%= product._id %>" class="list-group-item list-group-item-action"><%= product.name %></a>
+          <% } %>
+        </ul>
+        <a class="btn btn-outline-dark" href="/farms/<%= farm._id %>/products/new" role="button"><b>+</b></a>
     </div>
     <%- include("../partials/footer")  %>
   </body>

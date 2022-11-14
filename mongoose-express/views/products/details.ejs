@@ -8,8 +8,12 @@
         <ul class="list-group">
             <li class="list-group-item">Price: $<%= product.price %></li>
             <li class="list-group-item">Category: <%= product.category %></li>
+            <% if (product.farm) { %>
+              <li class="list-group-item">Farm: <a href="/farms/<%= product.farm._id %>"><%= product.farm.name %></a></li>
+            <% } %>
         </ul>
-        
+
+
 
         <form action="/products/<%= product._id %>?_method=DELETE" method="POST" class="form-inline">
           <a class="btn btn-primary" href="/products/<%= product._id %>/edit" role="button">Edit</a>

@@ -17,11 +17,11 @@ const AppError = require('./AppError')
 //     return next() // return next to ensure nothing happens after it is called
 // })
 
-app.use(( req, res, next) => {
-    req.requestTime = Date.now()
-    console.log(req.method, req.path, )
-    return next()
-})
+// app.use(( req, res, next) => {
+//     req.requestTime = Date.now()
+//     console.log(req.method, req.path, )
+//     return next()
+// })
 
 // Middleware that only executes when trying to reach /dogs
 app.use('/dogs', ( req, res, next) => {
@@ -127,20 +127,11 @@ app.post('/products', async (req, res, next) => {
 
 // Get product by ID and show details
 app.get('/products/:id', asyncErrorWrapper(async (req, res, next) => {
-    try {
-        const { id } = req.params
-        const product = await Product.findById(id)
-        console.log(product);
-        if(!product){
-            // App errors must be called by 'next' in an async function (not 'thrown' as normal)
-            return next(new AppError(404,"Product not found!"))
-        }
-        // Return the next function above to ensure the below function does not run afterwards!
-        res.render('products/details', { product })
 
-    } catch (error) {
-        return next(error)
-    }    
+    const { id } = req.params
+    const product = await Product.findById(id).populate('farm', 'name')
+    res.render('products/details', { product })
+
 }))
 
 // Edit a product
@@ -194,8 +185,7 @@ app.get('/farms/new', (req, res) => {
 // Get farm by ID and show details
 app.get('/farms/:id', asyncErrorWrapper(async (req, res, next) => {
     const { id } = req.params
-    const farm = await Farm.findById(id)
-    console.log(farm);
+    const farm = await Farm.findById(id).populate('products')
     if(!farm){
         // App errors must be called by 'next' in an async function (not 'thrown' as normal)
         return next(new AppError(404,"Farm not found!"))
@@ -204,9 +194,13 @@ app.get('/farms/:id', asyncErrorWrapper(async (req, res, next) => {
     res.render('farms/details', { farm })
 }))
 
+app.get('/farms/:id/products/new', asyncErrorWrapper(async(req, res) => {
+    const { id } = req.params
+    const farm = await Farm.findById(id)
+    res.render('farms/newProduct', { categories, farm })
+}))
 
-
-// Posting a new prduct
+// Posting a new farm
 app.post('/farms', asyncErrorWrapper(async (req, res, next) => {
 
     // Passing data directly into a new product is not safe
@@ -214,8 +208,22 @@ app.post('/farms', asyncErrorWrapper(async (req, res, next) => {
     const newFarm = new Farm(req.body)
     await newFarm.save()
     res.redirect(`/farms/${newFarm._id}`)
+}))
 
+// Posting a new product to a farm
+app.post('/farms/:id/products/new', asyncErrorWrapper(async(req, res) => {
+    const { id } = req.params
+    const farm = await Farm.findById(id)
 
+    const { name, price, category } = req.body
+    const product = new Product({ name, price, category })
+    farm.products.push(product)
+    product.farm = farm
+
+    await farm.save()
+    await product.save()
+
+    res.redirect(`/farms/${farm._id}`)
 }))
 
 // Edit a farm
