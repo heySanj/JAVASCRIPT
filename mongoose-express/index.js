@@ -1,9 +1,13 @@
 const path = require('path');
 const methodOverride = require('method-override')
 const express = require('express');
+const session = require('express-session');
 const app = express();
 const morgan = require('morgan')
 const AppError = require('./AppError')
+const bcrypt = require('bcrypt');
+
+
 // ====================== MIDDLEWARE =============================
 
 // // app.use runs on every request
@@ -52,6 +56,11 @@ app.set('view engine', 'ejs')
  // Serve static files such as JS scripts and CSS styles
 app.use(express.static(path.join(__dirname, '/public')))
 
+// Set session options based on what store method is being used (ie: Redis)
+// Make sure to change the memory store setting when deploying the app! Default memory store is just for production/testing
+const sessionOptions = { secret: 'thisisnotagoodsecret', resave: false, saveUninitialized: false }
+app.use(session(sessionOptions));
+
 // Print out request information to the console
 // app.use(morgan('tiny'))
 
@@ -60,6 +69,7 @@ app.use(express.static(path.join(__dirname, '/public')))
 const mongoose = require('mongoose');
 const Product = require('./models/product');
 const Farm = require('./models/farm');
+const User = require('./models/user')
 // const { nextTick } = require('process');
 require('dotenv').config();
 const dbName = 'farmStand'
@@ -75,6 +85,62 @@ mongoose.connect(`${process.env.DB_URI}/${dbName}?retryWrites=true&w=majority`)
 // ====================== OTHER SETUP =============================
 
 const categories = ['fruit', 'vegetable', 'dairy']
+
+// ======================= USER ROUTES ============================
+
+const requireLogin = (req, res, next) => {
+    if (!req.session.user_id) {
+        return res.redirect('/login')
+    }
+    next();
+}
+
+// On each request, pass on login information
+app.use((req, res, next) => {
+    res.locals.session = req.session
+    next()
+})
+
+app.get('/register', (req, res) => {
+    res.render('register')
+})
+
+app.post('/register', async (req, res) => {
+    const { password, username } = req.body;
+    const user = new User({ username, password })
+    await user.save();
+    req.session.user_id = user._id;
+    res.redirect('/')
+})
+
+app.get('/login', (req, res) => {
+    res.render('login')
+})
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    const foundUser = await User.findAndValidate(username, password);
+    if (foundUser) {
+        req.session.user_id = foundUser._id;
+        res.redirect('/secret');
+    }
+    else {
+        res.redirect('/login')
+    }
+})
+
+app.get('/logout', (req, res) => {
+    req.session.user_id = null;
+    // req.session.destroy();
+    res.redirect('/login');
+})
+
+app.get('/secret', requireLogin, (req, res) => {
+    res.send('You have been logged in!')
+})
+app.get('/topsecret', requireLogin, (req, res) => {
+    res.send("TOP SECRET!!!")
+})
+
 
 // ======================= PRODUCT ROUTES ============================
 
